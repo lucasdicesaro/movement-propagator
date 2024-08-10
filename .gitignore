@@ -1,0 +1,33 @@
+*.doc
+*.docx
+.~*
+!.gitignore
+# binaries and temp files
+*.class
+*.swp
+bin/
+build/
+
+# Ignore Eclipse project files
+.classpath
+.project
+.settings/
+
+# Ignore Netbeans project files
+nbproject/private
+nbbuild/
+dist/
+nbdist/
+nb-configuration.xml
+
+# IntelliJ project files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Ignore VSCode project files
+.vscode/
+
+# MacOS junk
+.DS_Store

@@ -12,7 +12,8 @@ public class MessageHandler {
   private static final String CHAT_PATTERN = "NOD:<clientId>|TYP:MSG=<content>";
   private static final String CLIENT_LIST_PATTERN = "NOD:<dummy>|TYP:LST=<clientList>";
   private static final String CLIENT_LIST_ITEM_PATTERN = "C_<clientId>#X_<coordX>#Y_<coordY>";
-  private static final String CLIENT_DOWN_PATTERN = "NOD:<clientId>|TYP:DWN";
+  private static final String CLIENT_CONNECTED_PATTERN = "NOD:<clientId>|TYP:CON";
+  private static final String CLIENT_DISCONNECTED_PATTERN = "NOD:<clientId>|TYP:DIS";
 
   // From client:
   // "NOD:<id>|TYP:MSG=<content>" // Chat
@@ -46,8 +47,12 @@ public class MessageHandler {
     return replaceClientId(clientId, CHAT_PATTERN).replaceFirst("<content>", content);
   }
 
-  public static String packClientDown(int clientId) {
-    return replaceClientId(clientId, CLIENT_DOWN_PATTERN);
+  public static String packClientConnected(int clientId) {
+    return replaceClientId(clientId, CLIENT_CONNECTED_PATTERN);
+  }
+
+  public static String packClientDisconnected(int clientId) {
+    return replaceClientId(clientId, CLIENT_DISCONNECTED_PATTERN);
   }
 
   public static String packClientList(Set<Client> clients) {

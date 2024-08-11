@@ -49,6 +49,11 @@ public class ClientHandler implements Runnable {
             logger.info("Handshake - Recibido [" + udpPortPackage + "]");
             int clientUdpPort = MessageHandler.unpackPortUDP(udpPortPackage);
 
+            // Se informa al resto de los clientes que clientId se ha conectado
+            String messagePackage = MessageHandler.packClientConnected(clientId);
+            NetworkUtils.broadcastMessage(messagePackage, clients);
+            logger.info("Enviado  [" + messagePackage + "]\n");
+
             synchronized (clients) {
                 clients.add(new Client(clientId, clientSocket, clientUdpPort, out));
             }
@@ -79,7 +84,6 @@ public class ClientHandler implements Runnable {
                             client.moveUp();
                             break;
                     }
-                    String messagePackage = "";
                     switch (messageContainer.getPayload().getContent()) {
                         case "A":
                         case "S":
@@ -114,7 +118,7 @@ public class ClientHandler implements Runnable {
             synchronized (clients) {
                 clients.removeIf(c -> c.getId() == clientId);
                 // Se informa al resto de los clientes que clientId se ha desconectado
-                String messagePackage = MessageHandler.packClientDown(clientId);
+                String messagePackage = MessageHandler.packClientDisconnected(clientId);
                 NetworkUtils.broadcastMessage(messagePackage, clients);
                 logger.info("Enviado  [" + messagePackage + "]\n");
             }

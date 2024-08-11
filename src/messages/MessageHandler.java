@@ -58,10 +58,10 @@ public class MessageHandler {
       clientList += CLIENT_LIST_ITEM_PATTERN.replaceFirst("<clientId>", String.format("%05d", client.getId()))
           .replaceFirst("<coordX>", String.format("%05d", client.getX()))
           .replaceFirst("<coordY>", String.format("%05d", client.getY()));
-      i++;
-      if (i == clientSize - 1) {
+      if (i < clientSize - 1) {
         clientList += ";";
       }
+      i++;
     }
 
     return CLIENT_LIST_PATTERN.replaceFirst("<dummy>", String.format("%05d", 0))

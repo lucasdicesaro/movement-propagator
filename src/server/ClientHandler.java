@@ -103,7 +103,7 @@ public class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning("Posible cliente desconectado " + e.getMessage());
         } finally {
             logger.info("El cliente [" + clientId + "] se ha desconectado");
             try {

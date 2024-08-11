@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,7 +40,7 @@ public class ClientHandler implements Runnable {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
 
             // Enviar el ID al cliente
-            String clientIdPackage = MessageHandler.packMessage(clientId, "");
+            String clientIdPackage = MessageHandler.packClientId(clientId);
             out.println(clientIdPackage);
             logger.info("Handshake - Enviado  [" + clientIdPackage + "]");
 
@@ -59,7 +58,46 @@ public class ClientHandler implements Runnable {
                 logger.info("Recibido [" + messageFromClient + "]");
                 MessageContainer messageContainer = MessageHandler.parseMessage(messageFromClient);
                 synchronized (clients) {
-                    String messagePackage = MessageHandler.packMessage(messageContainer);
+                    // Se busca el cliente que mando el mensaje
+                    Client client = clients.stream()
+                            .filter(each -> each.getId() == Integer.parseInt(messageContainer.getClientId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    // Actualizar coordenadas
+                    switch (messageContainer.getPayload().getContent()) {
+                        case "A":
+                            client.moveLeft();
+                            break;
+                        case "S":
+                            client.moveDown();
+                            break;
+                        case "D":
+                            client.moveRight();
+                            break;
+                        case "W":
+                            client.moveUp();
+                            break;
+                    }
+                    String messagePackage = "";
+                    switch (messageContainer.getPayload().getContent()) {
+                        case "A":
+                        case "S":
+                        case "D":
+                        case "W":
+                            logger.info("El cliente [" + client.getId() + "] mando un movimiento ["
+                                    + messageContainer.getPayload().getContent() + "]\n");
+                            messagePackage = MessageHandler.packClientList(clients);
+                            dumpClients(clients);
+                            break;
+                        default:
+                            logger.info("El cliente [" + client.getId() + "] mando un mensaje ["
+                                    + messageContainer.getPayload().getContent() + "]\n");
+                            messagePackage = MessageHandler.packChat(clientId,
+                                    messageContainer.getPayload().getContent());
+
+                    }
+
                     NetworkUtils.broadcastMessage(messagePackage, clients);
                     logger.info("Enviado  [" + messagePackage + "]\n");
                 }
@@ -83,45 +121,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public static class Client {
-        private int id;
-        private InetAddress clientAddress;
-        private int clientTcpPort;
-        private int clientUdpPort;
-        private PrintWriter writer;
-
-        public Client(int id, Socket clientSocket, int clientUdpPort,
-                PrintWriter writer) {
-            this.id = id;
-            this.clientAddress = clientSocket.getInetAddress();
-            this.clientTcpPort = clientSocket.getPort();
-            this.clientUdpPort = clientUdpPort;
-            this.writer = writer;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public InetAddress getClientAddress() {
-            return clientAddress;
-        }
-
-        public int getClientTcpPort() {
-            return clientTcpPort;
-        }
-
-        public int getClientUdpPort() {
-            return clientUdpPort;
-        }
-
-        public PrintWriter getWriter() {
-            return writer;
-        }
-
-        @Override
-        public String toString() {
-            return "CID:" + id + "|IP:" + clientAddress + "|TCP:" + clientTcpPort + "|UDP:" + clientUdpPort;
+    public void dumpClients(Set<Client> clients) {
+        for (Client client : clients) {
+            System.out.println(client);
         }
     }
 }

@@ -1,21 +1,29 @@
 package messages;
 
+import java.util.Set;
+
+import server.Client;
+
 public class MessageHandler {
 
   private static final String UDP_PORT_MESSAGE_PATTERN = "UDP:<udpPort>";
-  private static final String MESSAGE_PATTERN = "CID:<clientId>|PLD:<payload>";
-  private static final String CLIENT_DOWN_PATTERN = "CID:<clientId>|PLD:DWN";
+  private static final String CLIENT_ID_MESSAGE_PATTERN = "NOD:<clientId>";
+  private static final String ACTION_MOVEMENT_PATTERN = "NOD:<clientId>|TYP:MOV=<content>";
+  private static final String CHAT_PATTERN = "NOD:<clientId>|TYP:MSG=<content>";
+  private static final String CLIENT_LIST_PATTERN = "NOD:<dummy>|TYP:LST=<clientList>";
+  private static final String CLIENT_LIST_ITEM_PATTERN = "C_<clientId>#X_<coordX>#Y_<coordY>";
+  private static final String CLIENT_DOWN_PATTERN = "NOD:<clientId>|TYP:DWN";
 
   // From client:
-  // "NOD:<id>|TYP:CHT|<mensage>" // Chat
-  // "NOD:<id>|TYP:ACT|MOV=U" // Movement UP
-  // "NOD:<id>|TYP:ACT|MOV=D"
-  // "NOD:<id>|TYP:ACT|MOV=L"
-  // "NOD:<id>|TYP:ACT|MOV=R"
+  // "NOD:<id>|TYP:MSG=<content>" // Chat
+  // "NOD:<id>|TYP:MOV=U" // Movement UP
+  // "NOD:<id>|TYP:MOV=D"
+  // "NOD:<id>|TYP:MOV=L"
+  // "NOD:<id>|TYP:MOV=R"
   //
   // From server:
   // Client list
-  // "NOD:<id>|TYP:LIST|[{CID:1,X:162,Y:23},{CID:2,X:62,Y:67},{CID:3,X:56,Y:91}]"
+  // "NOD:<id>|TYP:LST=C_00002#X_-0010#Y_00006;C_00001#X_-0001#Y_00001"
 
   public static String packUDPPort(int udpPort) {
     return UDP_PORT_MESSAGE_PATTERN.replaceFirst("<udpPort>", String.valueOf(udpPort));
@@ -26,19 +34,38 @@ public class MessageHandler {
     return Integer.parseInt(udpPort);
   }
 
-  public static String packMessage(int clientId, String payload) {
-    return MESSAGE_PATTERN.replaceFirst("<clientId>", String.format("%05d", clientId))
-        .replaceFirst("<payload>", payload);
+  public static String packClientId(int clientId) {
+    return replaceClientId(clientId, CLIENT_ID_MESSAGE_PATTERN);
+  }
+
+  public static String packMovement(int clientId, String content) {
+    return replaceClientId(clientId, ACTION_MOVEMENT_PATTERN).replaceFirst("<content>", content);
+  }
+
+  public static String packChat(int clientId, String content) {
+    return replaceClientId(clientId, CHAT_PATTERN).replaceFirst("<content>", content);
   }
 
   public static String packClientDown(int clientId) {
-    return CLIENT_DOWN_PATTERN.replaceFirst("<clientId>", String.format("%05d", clientId));
+    return replaceClientId(clientId, CLIENT_DOWN_PATTERN);
   }
 
-  public static String packMessage(MessageContainer messageContainer) {
-    return MESSAGE_PATTERN.replaceFirst("<clientId>", messageContainer.getClientId())
-        .replaceFirst("<payload>",
-            messageContainer.getPayload() != null ? messageContainer.getPayload().getContent() : "");
+  public static String packClientList(Set<Client> clients) {
+    String clientList = "";
+    int i = 0;
+    int clientSize = clients.size();
+    for (Client client : clients) {
+      clientList += CLIENT_LIST_ITEM_PATTERN.replaceFirst("<clientId>", String.format("%05d", client.getId()))
+          .replaceFirst("<coordX>", String.format("%05d", client.getX()))
+          .replaceFirst("<coordY>", String.format("%05d", client.getY()));
+      i++;
+      if (i == clientSize - 1) {
+        clientList += ";";
+      }
+    }
+
+    return CLIENT_LIST_PATTERN.replaceFirst("<dummy>", String.format("%05d", 0))
+        .replaceFirst("<clientList>", clientList);
   }
 
   public static MessageContainer parseMessage(String message) {
@@ -55,7 +82,6 @@ public class MessageHandler {
     if (subtokens.length < 2) {
       // Se espera que cada token tenga el formato <key>:<value>
       // Se ignora si no tiene ese formato.
-      System.out.println("Mensaje mal formado");
       return;
     }
 
@@ -63,14 +89,14 @@ public class MessageHandler {
     String value = subtokens[1];
 
     switch (key) {
-      case "CID":
+      case "NOD":
         parseClientId(value, messageContainer);
         break;
-      case "PLD":
-        parsePayload(value, messageContainer);
+      case "TYP":
+        parseType(value, messageContainer);
         break;
       default:
-        throw new IllegalArgumentException("Tipo de mensaje invalido: [" + key + "]");
+        throw new IllegalArgumentException("Etiqueta invalida: [" + key + "]");
     }
   }
 
@@ -78,7 +104,47 @@ public class MessageHandler {
     messageContainer.setClientId(clientId);
   }
 
-  public static void parsePayload(String payload, MessageContainer messageContainer) {
-    messageContainer.setPayload(new Payload(payload));
+  public static void parseType(String subtoken, MessageContainer messageContainer) {
+    String[] subsubtokens = subtoken.split("=");
+    if (subsubtokens.length < 2) {
+      // Se espera que cada token tenga el formato <key>=<value>
+      // Se ignora si no tiene ese formato.
+      return;
+    }
+
+    String type = subsubtokens[0];
+    String value = subsubtokens[1];
+
+    switch (type) {
+      case "MSG":
+        messageContainer.setPayload(new ChatMessage(value));
+        break;
+      case "MOV":
+        messageContainer.setPayload(new Movement(value));
+        break;
+      case "LST":
+        parseClientList(value);
+        break;
+      default:
+        throw new IllegalArgumentException("Tipo de mensaje invalido: [" + type + "]");
+    }
+  }
+
+  public static void parseClientList(String list) {
+    // "NOD:<id>|TYP:LST=C_00002#X_-0010#Y_00006;C_00001#X_-0001#Y_00001"
+    String[] clients = list.split(";");
+    for (String client : clients) {
+      String[] attributes = client.split("#");
+      for (String attribute : attributes) {
+        String[] keyValue = attribute.split("_");
+        String key = keyValue[0];
+        String value = keyValue[1];
+        System.out.println(key + " = " + value);
+      }
+    }
+  }
+
+  private static String replaceClientId(int clientId, String pattern) {
+    return pattern.replaceFirst("<clientId>", String.format("%05d", clientId));
   }
 }

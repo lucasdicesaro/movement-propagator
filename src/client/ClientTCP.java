@@ -56,9 +56,28 @@ public class ClientTCP implements Runnable {
             String payload;
             while ((payload = teclado.readLine()) != null) {
                 if (!payload.isBlank()) {
-                    String message = MessageHandler.packMessage(clientId, payload);
-                    salida.println(message);
-                    logger.info("Enviado  [" + message + "]");
+                    String message = "";
+                    switch (payload) {
+                        case "Y":
+                            payload = teclado.readLine();
+                            if (!payload.isBlank()) {
+                                message = MessageHandler.packChat(clientId, payload);
+                            }
+                            break;
+                        case "A":
+                        case "S":
+                        case "D":
+                        case "W":
+                            message = MessageHandler.packMovement(clientId, payload);
+                            break;
+                        default:
+                            System.out.println("Ingrese A, S, D, W o Y (para mandar un mensaje)");
+
+                    }
+                    if (!message.isBlank()) {
+                        salida.println(message);
+                        logger.info("Enviado  [" + message + "]");
+                    }
                 }
             }
 

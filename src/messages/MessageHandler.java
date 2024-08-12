@@ -2,8 +2,6 @@ package messages;
 
 import java.util.Set;
 
-import server.Client;
-
 public class MessageHandler {
 
   private static final String UDP_PORT_MESSAGE_PATTERN = "UDP:<udpPort>";
@@ -12,8 +10,8 @@ public class MessageHandler {
   private static final String CHAT_PATTERN = "NOD:<clientId>|TYP:MSG=<content>";
   private static final String CLIENT_LIST_PATTERN = "NOD:<dummy>|TYP:LST=<clientList>";
   private static final String CLIENT_LIST_ITEM_PATTERN = "C_<clientId>#X_<coordX>#Y_<coordY>";
-  private static final String CLIENT_CONNECTED_PATTERN = "NOD:<clientId>|TYP:CON";
-  private static final String CLIENT_DISCONNECTED_PATTERN = "NOD:<clientId>|TYP:DIS";
+  private static final String CLIENT_CONNECTED_PATTERN = "NOD:<clientId>|CTRL:CON";
+  private static final String CLIENT_DISCONNECTED_PATTERN = "NOD:<clientId>|CTRL:DIS";
 
   // From client:
   // "NOD:<id>|TYP:MSG=<content>" // Chat
@@ -55,11 +53,11 @@ public class MessageHandler {
     return replaceClientId(clientId, CLIENT_DISCONNECTED_PATTERN);
   }
 
-  public static String packClientList(Set<Client> clients) {
+  public static String packClientList(Set<server.Client> clients) {
     String clientList = "";
     int i = 0;
     int clientSize = clients.size();
-    for (Client client : clients) {
+    for (server.Client client : clients) {
       clientList += CLIENT_LIST_ITEM_PATTERN.replaceFirst("<clientId>", String.format("%05d", client.getId()))
           .replaceFirst("<coordX>", String.format("%05d", client.getX()))
           .replaceFirst("<coordY>", String.format("%05d", client.getY()));
@@ -100,6 +98,9 @@ public class MessageHandler {
       case "TYP":
         parseType(value, messageContainer);
         break;
+      case "CTRL":
+        parseControl(value, messageContainer);
+        break;
       default:
         throw new IllegalArgumentException("Etiqueta invalida: [" + key + "]");
     }
@@ -109,11 +110,20 @@ public class MessageHandler {
     messageContainer.setClientId(clientId);
   }
 
+  public static void parseControl(String subtoken, MessageContainer messageContainer) {
+    switch (subtoken) {
+      case "CON":
+        messageContainer.setConnected(true);
+        break;
+      case "DIS":
+        messageContainer.setDisconnected(true);
+        break;
+    }
+  }
+
   public static void parseType(String subtoken, MessageContainer messageContainer) {
     String[] subsubtokens = subtoken.split("=");
     if (subsubtokens.length < 2) {
-      // Se espera que cada token tenga el formato <key>=<value>
-      // Se ignora si no tiene ese formato.
       return;
     }
 
@@ -122,30 +132,46 @@ public class MessageHandler {
 
     switch (type) {
       case "MSG":
-        messageContainer.setPayload(new ChatMessage(value));
+        messageContainer.setChat(true);
+        messageContainer.setContent(value);
         break;
       case "MOV":
-        messageContainer.setPayload(new Movement(value));
+        messageContainer.setContent(value);
         break;
       case "LST":
-        parseClientList(value);
+        messageContainer.setList(true);
+        parseClientList(value, messageContainer);
         break;
       default:
         throw new IllegalArgumentException("Tipo de mensaje invalido: [" + type + "]");
     }
   }
 
-  public static void parseClientList(String list) {
+  public static void parseClientList(String list, MessageContainer messageContainer) {
     // "NOD:<id>|TYP:LST=C_00002#X_-0010#Y_00006;C_00001#X_-0001#Y_00001"
     String[] clients = list.split(";");
     for (String client : clients) {
       String[] attributes = client.split("#");
+      int clientId = -1;
+      int x = -1;
+      int y = -1;
       for (String attribute : attributes) {
         String[] keyValue = attribute.split("_");
         String key = keyValue[0];
         String value = keyValue[1];
-        System.out.println(key + " = " + value);
+        switch (key) {
+          case "C":
+            clientId = Integer.parseInt(value);
+            break;
+          case "X":
+            x = Integer.parseInt(value);
+            break;
+          case "Y":
+            y = Integer.parseInt(value);
+            break;
+        }
       }
+      messageContainer.addClient(new messages.Client(clientId, x, y));
     }
   }
 

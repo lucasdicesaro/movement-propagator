@@ -1,8 +1,16 @@
 package messages;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class MessageContainer {
     private String clientId;
-    private Payload payload;
+    private Set<Client> clients;
+    private String content;
+    private boolean connected;
+    private boolean disconnected;
+    private boolean chat;
+    private boolean list;
 
     public String getClientId() {
         return clientId;
@@ -12,11 +20,58 @@ public class MessageContainer {
         this.clientId = clientId;
     }
 
-    public Payload getPayload() {
-        return payload;
+    public Set<Client> getClients() {
+        return clients;
     }
 
-    public void setPayload(Payload payload) {
-        this.payload = payload;
+    public void setClients(Set<Client> clients) {
+        this.clients = clients;
+    }
+
+    public void addClient(Client client) {
+        if (this.clients == null) {
+            this.clients = new HashSet<>();
+        }
+        this.clients.add(client);
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
+    }
+
+    public boolean isDisconnected() {
+        return disconnected;
+    }
+
+    public void setDisconnected(boolean disconnected) {
+        this.disconnected = disconnected;
+    }
+
+    public boolean isChat() {
+        return chat;
+    }
+
+    public void setChat(boolean chat) {
+        this.chat = chat;
+    }
+
+    public boolean isList() {
+        return list;
+    }
+
+    public void setList(boolean list) {
+        this.list = list;
     }
 }

@@ -1,6 +1,7 @@
 package client;
 
 import java.net.*;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import messages.MessageContainer;
@@ -37,6 +38,15 @@ public class ClientUDP implements Runnable {
                 if (clientId == Integer.parseInt(messageContainer.getClientId())) {
                     logger.info("Soy yo mismo");
                 }
+                if (messageContainer.isConnected()) {
+                    logger.info("Se ha conectado: " + messageContainer.getClientId());
+                } else if (messageContainer.isDisconnected()) {
+                    logger.info("Se ha desconectado: " + messageContainer.getClientId());
+                } else if (messageContainer.isChat()) {
+                    logger.info("[" + messageContainer.getClientId() + "]: " + messageContainer.getContent());
+                } else if (messageContainer.isList()) {
+                    dumpClients(messageContainer.getClients());
+                }
                 logger.info("");
             }
 
@@ -45,4 +55,9 @@ public class ClientUDP implements Runnable {
         }
     }
 
+    public void dumpClients(Set<messages.Client> clients) {
+        for (messages.Client client : clients) {
+            logger.info(client.toString());
+        }
+    }
 }

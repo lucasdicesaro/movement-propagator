@@ -70,7 +70,7 @@ public class ClientHandler implements Runnable {
                             .orElse(null);
 
                     // Actualizar coordenadas
-                    switch (messageContainer.getPayload().getContent()) {
+                    switch (messageContainer.getContent()) {
                         case "A":
                             client.moveLeft();
                             break;
@@ -84,21 +84,21 @@ public class ClientHandler implements Runnable {
                             client.moveUp();
                             break;
                     }
-                    switch (messageContainer.getPayload().getContent()) {
+                    switch (messageContainer.getContent()) {
                         case "A":
                         case "S":
                         case "D":
                         case "W":
                             logger.info("El cliente [" + client.getId() + "] mando un movimiento ["
-                                    + messageContainer.getPayload().getContent() + "]\n");
+                                    + messageContainer.getContent() + "]\n");
                             messagePackage = MessageHandler.packClientList(clients);
                             dumpClients(clients);
                             break;
                         default:
                             logger.info("El cliente [" + client.getId() + "] mando un mensaje ["
-                                    + messageContainer.getPayload().getContent() + "]\n");
+                                    + messageContainer.getContent() + "]\n");
                             messagePackage = MessageHandler.packChat(clientId,
-                                    messageContainer.getPayload().getContent());
+                                    messageContainer.getContent());
 
                     }
 
@@ -126,8 +126,9 @@ public class ClientHandler implements Runnable {
     }
 
     public void dumpClients(Set<Client> clients) {
+        logger.info("Lista de clientes:");
         for (Client client : clients) {
-            System.out.println(client);
+            logger.info(client.toString());
         }
     }
 }

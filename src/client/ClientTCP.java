@@ -39,11 +39,18 @@ public class ClientTCP implements Runnable {
             MessageContainer messageContainer = MessageHandler.parseMessage(clientIdPackage);
             logger.info("ClientId asignado por el servidor: " + messageContainer.getClientId());
 
+            String clientName = chooseName(teclado);
+
             // Enviar al servidor el puerto UDP asignado por el SO
             DatagramSocket udpSocket = new DatagramSocket();
             String udpPortPackage = MessageHandler.packUDPPort(udpSocket.getLocalPort());
             salida.println(udpPortPackage);
             logger.info("Enviado UDP port package [" + udpPortPackage + "]");
+
+            // Enviar al servidor el nombre del cliente
+            String clientNameMessage = MessageHandler.packClientName(clientName);
+            salida.println(clientNameMessage);
+            logger.info("Enviado client name package [" + clientNameMessage + "]");
 
             int clientId = Integer.parseInt(messageContainer.getClientId());
 
@@ -84,5 +91,29 @@ public class ClientTCP implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    final static int MAX_LENGTH = 12; // Máximo número de caracteres permitidos
+
+    public static String chooseName(BufferedReader keyboard) throws IOException {
+        String name;
+
+        // Expresión regular para validar alfanumérico sin espacios
+        String pattern = "^[a-zA-Z0-9]+$";
+        boolean valid;
+
+        do {
+            System.out.println("Nombre:");
+            name = keyboard.readLine();
+
+            // Verifica si la entrada cumple con el patrón
+            valid = name.matches(pattern) && name.length() <= MAX_LENGTH;
+
+            if (!valid) {
+                System.out.println("Introduce solo caracteres alfanuméricos sin espacios y menor a " + MAX_LENGTH);
+            }
+        } while (!valid);
+
+        return name;
     }
 }

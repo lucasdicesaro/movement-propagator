@@ -5,11 +5,12 @@ import java.util.Set;
 public class MessageHandler {
 
   private static final String UDP_PORT_MESSAGE_PATTERN = "UDP:<udpPort>";
+  private static final String CLIENT_NAME_MESSAGE_PATTERN = "NAME:<clientName>";
   private static final String CLIENT_ID_MESSAGE_PATTERN = "NOD:<clientId>";
   private static final String ACTION_MOVEMENT_PATTERN = "NOD:<clientId>|TYP:MOV=<content>";
   private static final String CHAT_PATTERN = "NOD:<clientId>|TYP:MSG=<content>";
   private static final String CLIENT_LIST_PATTERN = "NOD:<dummy>|TYP:LST=<clientList>";
-  private static final String CLIENT_LIST_ITEM_PATTERN = "C_<clientId>#X_<coordX>#Y_<coordY>";
+  private static final String CLIENT_LIST_ITEM_PATTERN = "C_<clientId>#N_<clientName>#X_<coordX>#Y_<coordY>";
   private static final String CLIENT_CONNECTED_PATTERN = "NOD:<clientId>|CTRL:CON";
   private static final String CLIENT_DISCONNECTED_PATTERN = "NOD:<clientId>|CTRL:DIS";
 
@@ -28,9 +29,16 @@ public class MessageHandler {
     return UDP_PORT_MESSAGE_PATTERN.replaceFirst("<udpPort>", String.valueOf(udpPort));
   }
 
-  public static int unpackPortUDP(String udpPortPackage) {
-    String udpPort = udpPortPackage.split(":")[1];
-    return Integer.parseInt(udpPort);
+  public static String packClientName(String clientName) {
+    return CLIENT_NAME_MESSAGE_PATTERN.replaceFirst("<clientName>", String.valueOf(clientName));
+  }
+
+  public static int unpackPortUDP(String keyValueMessage) {
+    return Integer.parseInt(unpackKeyValueMessage(keyValueMessage));
+  }
+
+  public static String unpackKeyValueMessage(String keyValueMessage) {
+    return keyValueMessage.split(":")[1];
   }
 
   public static String packClientId(int clientId) {
@@ -59,6 +67,7 @@ public class MessageHandler {
     int clientSize = clients.size();
     for (server.Client client : clients) {
       clientList += CLIENT_LIST_ITEM_PATTERN.replaceFirst("<clientId>", String.format("%05d", client.getId()))
+          .replaceFirst("<clientName>", client.getName())
           .replaceFirst("<coordX>", String.format("%05d", client.getX()))
           .replaceFirst("<coordY>", String.format("%05d", client.getY()));
       if (i < clientSize - 1) {
@@ -153,6 +162,7 @@ public class MessageHandler {
     for (String client : clients) {
       String[] attributes = client.split("#");
       int clientId = -1;
+      String clientName = "";
       int x = -1;
       int y = -1;
       for (String attribute : attributes) {
@@ -163,6 +173,9 @@ public class MessageHandler {
           case "C":
             clientId = Integer.parseInt(value);
             break;
+          case "N":
+            clientName = value;
+            break;
           case "X":
             x = Integer.parseInt(value);
             break;
@@ -171,7 +184,7 @@ public class MessageHandler {
             break;
         }
       }
-      messageContainer.addClient(new messages.Client(clientId, x, y));
+      messageContainer.addClient(new messages.Client(clientId, clientName, x, y));
     }
   }
 

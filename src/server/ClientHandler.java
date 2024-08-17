@@ -49,13 +49,18 @@ public class ClientHandler implements Runnable {
             logger.info("Handshake - Recibido [" + udpPortPackage + "]");
             int clientUdpPort = MessageHandler.unpackPortUDP(udpPortPackage);
 
+            // Recibir el nombre del cliente "NAME:<clientName>"
+            String clientNameMessage = in.readLine();
+            logger.info("Handshake - Recibido [" + clientNameMessage + "]");
+            String clientName = MessageHandler.unpackKeyValueMessage(clientNameMessage);
+
             // Se informa al resto de los clientes que clientId se ha conectado
             String messagePackage = MessageHandler.packClientConnected(clientId);
             NetworkUtils.broadcastMessage(messagePackage, clients);
             logger.info("Enviado  [" + messagePackage + "]\n");
 
             synchronized (clients) {
-                clients.add(new Client(clientId, clientSocket, clientUdpPort, out));
+                clients.add(new Client(clientId, clientName, clientSocket, clientUdpPort, out));
             }
 
             String messageFromClient;
@@ -84,6 +89,7 @@ public class ClientHandler implements Runnable {
                             client.moveUp();
                             break;
                     }
+                    // Propagar el movimiento al resto de los clientes (o el mensaje de chat).
                     switch (messageContainer.getContent()) {
                         case "A":
                         case "S":

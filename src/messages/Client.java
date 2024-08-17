@@ -2,11 +2,13 @@ package messages;
 
 public class Client {
     private int id;
+    private String name;
     private int x;
     private int y;
 
-    public Client(int id, int x, int y) {
+    public Client(int id, String name, int x, int y) {
         this.id = id;
+        this.name = name;
         this.x = x;
         this.y = y;
     }
@@ -17,6 +19,14 @@ public class Client {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getX() {
@@ -37,6 +47,6 @@ public class Client {
 
     @Override
     public String toString() {
-        return "NOD:" + id + "|X:" + String.format("%04d", x) + "|Y:" + String.format("%04d", y);
+        return "NOD:" + id + "|X:" + String.format("%04d", x) + "|Y:" + String.format("%04d", y) + "|NAME:" + name;
     }
 }

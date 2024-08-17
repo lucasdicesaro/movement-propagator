@@ -6,6 +6,7 @@ import java.net.Socket;
 
 public class Client {
     private int id;
+    private String name;
     private InetAddress clientAddress;
     private int clientTcpPort;
     private int clientUdpPort;
@@ -13,9 +14,10 @@ public class Client {
     private int y;
     private PrintWriter writer;
 
-    public Client(int id, Socket clientSocket, int clientUdpPort,
+    public Client(int id, String name, Socket clientSocket, int clientUdpPort,
             PrintWriter writer) {
         this.id = id;
+        this.name = name;
         this.clientAddress = clientSocket.getInetAddress();
         this.clientTcpPort = clientSocket.getPort();
         this.clientUdpPort = clientUdpPort;
@@ -26,6 +28,10 @@ public class Client {
 
     public int getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public InetAddress getClientAddress() {
@@ -70,7 +76,7 @@ public class Client {
 
     @Override
     public String toString() {
-        return "NOD:" + id + "|IP:" + clientAddress + "|TCP:" + clientTcpPort + "|UDP:" + clientUdpPort +
-                "|X:" + String.format("%04d", x) + "|Y:" + String.format("%04d", y);
+        return "NOD:" + id + "|NAME:" + name + "|IP:" + clientAddress + "|TCP:" + clientTcpPort + "|UDP:"
+                + clientUdpPort + "|X:" + String.format("%04d", x) + "|Y:" + String.format("%04d", y);
     }
 }

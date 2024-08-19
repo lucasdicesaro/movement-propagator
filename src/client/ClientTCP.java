@@ -30,7 +30,7 @@ public class ClientTCP implements Runnable {
         try (Socket socket = new Socket(serverAddress, tcpPort);
                 BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter salida = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in))) {
+                BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in))) {
 
             // Leer el ClientId asignado por el servidor
             String clientIdPackage = entrada.readLine();
@@ -39,7 +39,7 @@ public class ClientTCP implements Runnable {
             MessageContainer messageContainer = MessageHandler.parseMessage(clientIdPackage);
             logger.info("ClientId asignado por el servidor: " + messageContainer.getClientId());
 
-            String clientName = chooseName(teclado);
+            String myName = chooseName(keyboard);
 
             // Enviar al servidor el puerto UDP asignado por el SO
             DatagramSocket udpSocket = new DatagramSocket();
@@ -48,7 +48,7 @@ public class ClientTCP implements Runnable {
             logger.info("Enviado UDP port package [" + udpPortPackage + "]");
 
             // Enviar al servidor el nombre del cliente
-            String clientNameMessage = MessageHandler.packClientName(clientName);
+            String clientNameMessage = MessageHandler.packClientName(myName);
             salida.println(clientNameMessage);
             logger.info("Enviado client name package [" + clientNameMessage + "]");
 
@@ -60,31 +60,32 @@ public class ClientTCP implements Runnable {
             Runnable clientTCPReader = new ClientTCPReader(socket, entrada);
             new Thread(clientTCPReader).start();
 
-            String payload;
-            while ((payload = teclado.readLine()) != null) {
-                if (!payload.isBlank()) {
-                    String message = "";
-                    switch (payload) {
-                        case "Y":
-                            payload = teclado.readLine();
-                            if (!payload.isBlank()) {
-                                message = MessageHandler.packChat(clientId, payload);
-                            }
-                            break;
-                        case "A":
-                        case "S":
-                        case "D":
-                        case "W":
-                            message = MessageHandler.packMovement(clientId, payload);
-                            break;
-                        default:
-                            System.out.println("Ingrese A, S, D, W o Y (para mandar un mensaje)");
+            showUsage();
 
-                    }
-                    if (!message.isBlank()) {
-                        salida.println(message);
-                        logger.info("Enviado  [" + message + "]");
-                    }
+            char character;
+            while ((character = Character.toUpperCase((char) keyboard.read())) != 'Q') {
+                keyboard.readLine(); // Lee el resto de la línea y descarta
+                String message = "";
+                switch (character) {
+                    case 'Y':
+                        System.out.print(myName + "> ");
+                        String payload = keyboard.readLine();
+                        if (!payload.isBlank()) {
+                            message = MessageHandler.packChat(clientId, payload);
+                        }
+                        break;
+                    case 'A':
+                    case 'S':
+                    case 'D':
+                    case 'W':
+                        message = MessageHandler.packMovement(clientId, character);
+                        break;
+                    default:
+                        showUsage();
+                }
+                if (!message.isBlank()) {
+                    salida.println(message);
+                    logger.info("Enviado  [" + message + "]");
                 }
             }
 
@@ -103,17 +104,27 @@ public class ClientTCP implements Runnable {
         boolean valid;
 
         do {
-            System.out.println("Nombre:");
+            System.out.print("Nombre: ");
             name = keyboard.readLine();
 
             // Verifica si la entrada cumple con el patrón
             valid = name.matches(pattern) && name.length() <= MAX_LENGTH;
 
             if (!valid) {
-                System.out.println("Introduce solo caracteres alfanuméricos sin espacios y menor a " + MAX_LENGTH);
+                System.out.print("Introduce solo caracteres alfanuméricos sin espacios y menor a " + MAX_LENGTH + ": ");
             }
         } while (!valid);
 
         return name;
+    }
+
+    private static void showUsage() {
+        System.out.print("Opciones:\n" +
+                "W - moverse arriba\n" +
+                "S - moverse abajo\n" +
+                "A - moverse a la izquierda\n" +
+                "D - moverse a la derecha\n" +
+                "Y - enviar un mensaje\n" +
+                "Q - salir\n> ");
     }
 }

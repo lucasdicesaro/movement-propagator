@@ -45,8 +45,8 @@ public class MessageHandler {
     return replaceClientId(clientId, CLIENT_ID_MESSAGE_PATTERN);
   }
 
-  public static String packMovement(int clientId, String content) {
-    return replaceClientId(clientId, ACTION_MOVEMENT_PATTERN).replaceFirst("<content>", content);
+  public static String packMovement(int clientId, char content) {
+    return replaceClientId(clientId, ACTION_MOVEMENT_PATTERN).replaceFirst("<content>", String.valueOf(content));
   }
 
   public static String packChat(int clientId, String content) {

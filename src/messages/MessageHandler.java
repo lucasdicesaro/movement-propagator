@@ -2,6 +2,8 @@ package messages;
 
 import java.util.Set;
 
+import messages.data.MessageContainer;
+
 public class MessageHandler {
 
   private static final String UDP_PORT_MESSAGE_PATTERN = "UDP:<udpPort>";
@@ -61,11 +63,11 @@ public class MessageHandler {
     return replaceClientId(clientId, CLIENT_DISCONNECTED_PATTERN);
   }
 
-  public static String packClientList(Set<server.Client> clients) {
+  public static String packClientList(Set<server.data.Client> clients) {
     String clientList = "";
     int i = 0;
     int clientSize = clients.size();
-    for (server.Client client : clients) {
+    for (server.data.Client client : clients) {
       clientList += CLIENT_LIST_ITEM_PATTERN.replaceFirst("<clientId>", String.format("%05d", client.getId()))
           .replaceFirst("<clientName>", client.getName())
           .replaceFirst("<coordX>", String.format("%05d", client.getX()))
@@ -184,7 +186,7 @@ public class MessageHandler {
             break;
         }
       }
-      messageContainer.addClient(new messages.Client(clientId, clientName, x, y));
+      messageContainer.addClient(new messages.data.Client(clientId, clientName, x, y));
     }
   }
 

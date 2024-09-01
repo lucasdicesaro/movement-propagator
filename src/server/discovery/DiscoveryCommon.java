@@ -1,4 +1,4 @@
-package server;
+package server.discovery;
 
 public class DiscoveryCommon {
     public static final int DISCOVERY_PORT = 8888;

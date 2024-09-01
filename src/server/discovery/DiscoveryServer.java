@@ -1,4 +1,4 @@
-package server;
+package server.discovery;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

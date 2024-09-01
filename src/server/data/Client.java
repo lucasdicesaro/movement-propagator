@@ -1,4 +1,4 @@
-package server;
+package server.data;
 
 import java.io.PrintWriter;
 import java.net.InetAddress;

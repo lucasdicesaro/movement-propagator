@@ -1,4 +1,4 @@
-package messages;
+package messages.data;
 
 public class Client {
     private int id;

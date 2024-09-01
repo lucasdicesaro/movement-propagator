@@ -4,8 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.logging.Logger;
 
-import messages.MessageContainer;
 import messages.MessageHandler;
+import messages.data.MessageContainer;
 
 public class ClientTCP implements Runnable {
 

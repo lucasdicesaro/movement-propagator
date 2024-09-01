@@ -1,4 +1,4 @@
-package client;
+package client.discovery;
 
 import java.io.IOException;
 import java.net.*;
@@ -7,7 +7,7 @@ import java.util.concurrent.*; // For Callable, ExecutorServer, Executors, Futur
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import server.DiscoveryCommon;
+import server.discovery.DiscoveryCommon;
 
 /**
  * 

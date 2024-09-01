@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.Set;
 
-import server.Client;
+import server.data.Client;
 
 public class NetworkUtils {
 

@@ -4,8 +4,8 @@ import java.net.*;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import messages.MessageContainer;
 import messages.MessageHandler;
+import messages.data.MessageContainer;
 
 public class ClientUDP implements Runnable {
 
@@ -55,8 +55,8 @@ public class ClientUDP implements Runnable {
         }
     }
 
-    public void dumpClients(Set<messages.Client> clients) {
-        for (messages.Client client : clients) {
+    public void dumpClients(Set<messages.data.Client> clients) {
+        for (messages.data.Client client : clients) {
             logger.info(client.toString());
         }
     }

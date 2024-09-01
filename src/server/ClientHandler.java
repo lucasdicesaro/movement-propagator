@@ -9,8 +9,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import messages.MessageContainer;
 import messages.MessageHandler;
+import messages.data.MessageContainer;
+import server.data.Client;
 import utils.NetworkUtils;
 
 public class ClientHandler implements Runnable {

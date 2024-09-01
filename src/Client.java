@@ -2,7 +2,7 @@
 import java.util.logging.Logger;
 
 import client.ClientTCP;
-import client.DiscoveryClient;
+import client.discovery.DiscoveryClient;
 
 public class Client {
 

@@ -1,8 +1,8 @@
 
 import java.util.logging.Logger;
 
-import server.DiscoveryServer;
 import server.ServerTCP;
+import server.discovery.DiscoveryServer;
 
 public class Server {
 

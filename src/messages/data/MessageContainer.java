@@ -1,4 +1,4 @@
-package messages;
+package messages.data;
 
 import java.util.HashSet;
 import java.util.Set;
